@@ -1,0 +1,36 @@
+דניס
+פונקציית LOG IN
+
+נסטיה
+4. void search_existing_customer() {if not: new customer, if yes: update_customer_details}
+
+void new_customer():
+enter the details  to the database through a client struct
+choose custumer status
+send into next_stage()
+
+void update_customer_details()
+
+לבנות את struct of deals
+int deal_number
+int number_of_products
+char* type of products
+char* type_of_deal
+int total_price
+char* status
+char* type_of_payment
+
+בנימין
+employee menu 
+manager menu
+
+לבנות את struct of clients:
+*first name
+*last name
+*id
+*phone number 
+*email
+*city 
+*adress
+*status
+*payment_details
