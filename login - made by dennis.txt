@@ -1,0 +1,66 @@
+define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include<stdlib.h>
+# define LINESIZE 40
+int login(char* user, char* password) {
+	/*
+		The function gets char* of username and password.
+		The function returns: 1 if the user is a employee, 2 if manager,0 if there is a wrong login details.
+		there needs to be a csv file where each row conatins 3 clumns: username,password and employee type. 
+		username can only contain letters and numbers.
+	*/
+	FILE* fp;
+	int i = 0;
+	int j = 0;
+	char line[LINESIZE];
+	char fUser[LINESIZE];
+	char fPassword[LINESIZE];
+	char type[LINESIZE];
+	fp = fopen("UserDatabase.csv", "r");
+	if (!fp) {
+		printf("File failed to open!\n");
+		exit(1);
+	}
+	while (fgets(line, LINESIZE, fp)) {//gets a row each time every clumn separated by comas
+		i = 0;
+		j = 0;
+		while (line[i] != ',')
+		{
+			if ((line[i] > 'a' && line[i] < 'z') || (line[i] > 'A' && line[i] < 'Z') || (line[i] > '0'&&line[i] < '9')) {//gets username and clears junk
+				fUser[j] = line[i];
+				++j;
+			}
+			++i;
+		}
+		fUser[j] = '\0';
+		if (strcmp(user, fUser) == 0)
+		{
+			j = 0;
+			++i;
+			while (line[i] != ',') {//gets password from line
+				fPassword[j] = line[i];
+				++j;
+				++i;
+			}
+			fPassword[j] = '\0';
+			if (strcmp(password, fPassword) == 0) {
+				j = 0;
+				++i;
+				while (line[i]!='\n') {//gets type from line
+					type[j] = line[i];
+					++j;
+					++i;
+				}
+				type[j] = '\0';
+				if (strcmp(type, "manager") == 0) {
+					return 2;
+				}
+				if (strcmp(type, "employee") == 0) {
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
+
+}
