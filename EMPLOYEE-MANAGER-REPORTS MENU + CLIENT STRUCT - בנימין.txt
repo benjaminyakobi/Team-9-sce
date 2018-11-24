@@ -1,0 +1,230 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+/*EMPLOYEE MENU*/
+void employee_menu(); // Print Employee-Menu
+void opportunity_table_database(); // Opportunity-Table Database
+int search_existing_customer(); // return 0 / 1 if customer dose exist / dose not exist in the database
+void update_existing_customer(); // if customer dose existing in the database >> call this function
+void assign_new_customer(); // if customer dose not existing in the database >> call this function
+void todo_list_database(); // TODO-List Database
+void self_reports(char* name); // Employee Self-Reports
+
+
+/*MANAGER MENU*/
+void manager_menu();
+void opportunity_table_database(); // Opportunity-Table Database
+int search_existing_customer(); // return 0 / 1 if customer dose exist / dose not exist in the database
+void update_existing_customer(); // if customer dose existing in the database >> call this function
+void assign_new_customer(); // if customer dose not existing in the database >> call this function
+void todo_list_database(); // TODO-List Database
+void all_reports_menu(); // All Reports Menu to choose specific report
+void repricing_products(); // Repricing products in the database
+
+/*All REPORTS MENU FOR MANAGER ONLY!*/
+void report_by_name(); // { scanf char* name->calls self_reports function }
+void new_customers_last_month(); // from Opportunity Table (MAYBE WE HAVE TO ADD 'DATE OF JOIN' IN THE CUSTOMER DETAILS)
+void new_customers_last_year();// from Opportunity Table (MAYBE WE HAVE TO ADD 'DATE OF JOIN' IN THE CUSTOMER DETAILS)
+void successful_deals_last_month(); // from Opportunity Table, Status: "Win"
+void successful_deals_last_year(); // from Opportunity Table, Status: "Win"
+
+
+struct Clients {
+	char* firstName;
+	char* lastName;
+	unsigned long int id;
+	unsigned long int phoneNumber;
+	char* emailAdress;
+	char* city;
+	char* livingAdress;
+	char* dealStatus;
+	char* paymentDetails;
+};
+
+void main() {
+	int choice = 0;
+	printf("employee-0 // manager-1: ");
+	scanf("%d", &choice);
+	if (choice == 0)
+		employee_menu();
+	if (choice == 1)
+		manager_menu();
+}
+
+void all_reports_menu() {
+	int report_choice;
+	
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("**************** ALL REPORTS MENU ****************\n");
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("**    1. Report By Name of Employee             **\n");
+	printf("%30.s");
+	printf("**    2. Last Month New Customers               **\n");
+	printf("%30.s");
+	printf("**    3. Last Year New Customers                **\n");
+	printf("%30.s");
+	printf("**    4. Last Month Successful Deals            **\n");
+	printf("%30.s");
+	printf("**    5. Last Year Successful Deals             **\n");
+	printf("%30.s");
+	printf("**    0. Go Back To Previous Menu               **\n");
+	printf("%30.s");
+	printf("**************************************************\n\n");
+
+	printf("Enter Your Choice: ");
+	scanf("%d", &report_choice);
+
+	while (report_choice < 0 || report_choice > 5 && (report_choice <= '/' || report_choice >= ':')) {
+		printf("Wrong choice - Enter Your Choice: ");
+		fseek(stdin, 0, SEEK_END);
+		scanf("%d", &report_choice);
+	}
+	switch (report_choice) {
+	case 1:
+		///		report_by_name();
+		break;
+	case 2:
+		///		new_customers_last_month();
+		break;
+	case 3:
+		///		new_customers_last_year();
+		break;
+	case 4:
+		///		successful_deals_last_month();
+		break;
+	case 5:
+		///		successful_deals_last_year();
+		break;
+	case 0:
+		manager_menu();
+		break;
+	default:
+
+		break;
+	}
+}
+
+void manager_menu() {
+	int manager_choice;
+	int customer_ID = 0;
+
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("****************** MANAGER MENU ******************\n");
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("**    1. Opportunity Table                      **\n");
+	printf("%30.s");
+	printf("**    2. Search existing customer               **\n");
+	printf("%30.s");
+	printf("**    3. TO-DO List                             **\n");
+	printf("%30.s");
+	printf("**    4. All Reports                            **\n");
+	printf("%30.s");
+	printf("**    5. Repricing Products                     **\n");
+	printf("%30.s");
+	printf("**    0. Exit                                   **\n");
+	printf("%30.s");
+	printf("**************************************************\n\n");
+
+	printf("Enter Your Choice: ");
+	scanf("%d", &manager_choice);
+	while (manager_choice < 0 || manager_choice > 5 && (manager_choice <= '/' || manager_choice >= ':'))
+	{
+		printf("Wrong choice - Enter Your Choice: ");
+		fseek(stdin, 0, SEEK_END);
+		scanf("%d", &manager_choice);
+	}
+	switch (manager_choice) {
+	case 0:
+		printf("Good Bye");
+		exit(0);
+		break;
+	case 1:
+		///		opportunity_table_database();
+		///		break;
+	case 2:
+		///		printf("Enter customer's ID: ");
+		///		scanf("%d", &customer_ID);
+		///		if (search_existing_customer(customer_ID)) {
+		///			update_customer_details(customer_ID);
+		///		}
+		///		assign_new_customer();
+		break;
+	case 3:
+		///		todo_list_database();
+		break;
+	case 4:
+		all_reports_menu();
+		break;
+	case 5:
+		///		repricing_products();
+		break;
+	default:
+		break;
+	}
+
+}
+
+void employee_menu() {
+	int employee_choice;
+	int customer_ID = 0;
+	printf("%30.s");
+	printf("***************************************************\n");
+	printf("%30.s");
+	printf("****************** EMPLOYEE MENU ******************\n");
+	printf("%30.s");
+	printf("***************************************************\n");
+	printf("%30.s");
+	printf("**    1. Opportunity Table                       **\n");
+	printf("%30.s");
+	printf("**    2. Search existing customer                **\n");
+	printf("%30.s");
+	printf("**    3. TO-DO List                              **\n");
+	printf("%30.s");
+	printf("**    4. Self Reports                            **\n");
+	printf("%30.s");
+	printf("**    0. Exit                                    **\n");
+	printf("%30.s");
+	printf("***************************************************\n\n");
+
+	printf("Enter Your Choice: ");
+	scanf("%d", &employee_choice);
+
+	while (employee_choice < 0 || employee_choice > 4 && (employee_choice <= '/' || employee_choice >= ':')) {
+		printf("Wrong choice - Enter Your Choice: ");
+		fseek(stdin, 0, SEEK_END);
+		scanf("%d", &employee_choice);
+	}
+	switch (employee_choice) {
+	case 0:
+		printf("Good Bye");
+		exit(0);
+		break;
+	case 1:
+		///		opportunity_table_database();
+		///		break;
+	case 2:
+		///		printf("Enter customer's ID: ");
+		///		scanf("%d", &customer_ID);
+		///		if (search_existing_customer(customer_ID)) {
+		///			update_customer_details(customer_ID);
+		///		}
+		///		assign_new_customer();
+		break;
+	case 3:
+		///		todo_list_database();
+		break;
+	case 4:
+		///		self_reports(/*employee name*/); 
+		break;
+	default:
+		break;
+	}
+}
