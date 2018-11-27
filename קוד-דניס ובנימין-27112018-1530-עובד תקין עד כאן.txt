@@ -1,0 +1,435 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define LINESIZE 200
+#define SIZE 40
+#define repricing_col 4
+#define opportunity_col 9
+
+
+int login_input(char* connected_as);
+int login(char* user, char* password);
+void make_array(char*** array, char* database_name, int database_columns);
+
+/*EMPLOYEE MENU*/
+void employee_menu(char* connected_as); // Print Employee-Menu
+void print_database(char* db_name); // Open the Opportunity-Table Database and print it
+int search_existing_customer(); // return 0 / 1 if customer dose exist / dose not exist in the database
+void update_existing_customer(); // if customer dose existing in the database >> call this function
+void assign_new_customer(char* connected_as); // if customer dose not existing in the database >> call this function
+void todo_list_database(); // TODO-List Database
+void self_reports(char* name); // Employee Self-Reports
+
+/*MANAGER MENU*/
+void manager_menu(char* connected_as);
+void print_database(char* db_name); // Open the Opportunity-Table Database and print it
+int search_existing_customer(); // return 0 / 1 if customer dose exist / dose not exist in the database
+void update_existing_customer(); // if customer dose existing in the database >> call this function
+void assign_new_customer(char* connected_as); // if customer dose not existing in the database >> call this function
+void todo_list_database(); // TODO-List Database
+void all_reports_menu(); // All Reports Menu to choose specific report
+void repricing_products(); // Repricing products in the database
+
+/*All REPORTS MENU FOR MANAGER ONLY!*/
+void report_by_name(); // { scanf char* name->calls self_reports function }
+void new_customers_last_month(); // from Opportunity Table (MAYBE WE HAVE TO ADD 'DATE OF JOIN' IN THE CUSTOMER DETAILS)
+void new_customers_last_year();// from Opportunity Table (MAYBE WE HAVE TO ADD 'DATE OF JOIN' IN THE CUSTOMER DETAILS)
+void successful_deals_last_month(); // from Opportunity Table, Status: "Win"
+void successful_deals_last_year(); // from Opportunity Table, Status: "Win"
+
+
+int main() {
+	//	connected_as = (char*)malloc(SIZE * sizeof(char));
+	//	int log = login_input(connected_as);
+	char* connected_as = NULL;
+	char*** test = { "" };
+	make_array(test, "opportunity_table.csv", 9);
+	int log = 0;
+	printf("check: 1 - employee /// 2 - manager: ");
+	scanf("%d", &log);
+	if (log == 1)
+		employee_menu(connected_as);
+	if (log == 2)
+		manager_menu(connected_as);
+	return 0;
+}
+
+/*NOT COMPLITED!*/
+void all_reports_menu(char* connected_as) {
+	int report_choice;
+
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("**************** ALL REPORTS MENU ****************\n");
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("**    1. Report By Name of Employee             **\n");
+	printf("%30.s");
+	printf("**    2. Last Month New Customers               **\n");
+	printf("%30.s");
+	printf("**    3. Last Year New Customers                **\n");
+	printf("%30.s");
+	printf("**    4. Last Month Successful Deals            **\n");
+	printf("%30.s");
+	printf("**    5. Last Year Successful Deals             **\n");
+	printf("%30.s");
+	printf("**    0. Go Back To Previous Menu               **\n");
+	printf("%30.s");
+	printf("**************************************************\n\n");
+
+	printf("Enter Your Choice: ");
+	scanf("%d", &report_choice);
+
+	while (report_choice < 0 || report_choice > 5 && (report_choice <= '/' || report_choice >= ':')) {
+		printf("Wrong choice - Enter Your Choice: ");
+		fseek(stdin, 0, SEEK_END);
+		scanf("%d", &report_choice);
+	}
+	switch (report_choice) {
+	case 1:
+		///		report_by_name();
+		break;
+	case 2:
+		///		new_customers_last_month();
+		break;
+	case 3:
+		///		new_customers_last_year();
+		break;
+	case 4:
+		///		successful_deals_last_month();
+		break;
+	case 5:
+		///		successful_deals_last_year();
+		break;
+	case 0:
+		manager_menu(connected_as);
+		break;
+	default:
+
+		break;
+	}
+}
+
+void manager_menu(char* connected_as) {
+	int manager_choice;
+	int customer_ID = 0;
+	char*** database_array = NULL;
+
+
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("****************** MANAGER MENU ******************\n");
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("**    1. Print Opportunity Table                **\n");
+	printf("%30.s");
+	printf("**    2. Search existing customer               **\n");
+	printf("%30.s");
+	printf("**    3. TO-DO List                             **\n");
+	printf("%30.s");
+	printf("**    4. All Reports                            **\n");
+	printf("%30.s");
+	printf("**    5. Print Price List                       **\n");
+	printf("%30.s");
+	printf("**    6. Repricing Products                     **\n");
+	printf("%30.s");
+	printf("**    0. Exit                                   **\n");
+	printf("%30.s");
+	printf("**************************************************\n\n");
+
+	printf("Enter Your Choice: ");
+	scanf("%d", &manager_choice);
+	while (manager_choice < 0 || manager_choice > 6 && (manager_choice <= '/' || manager_choice >= ':'))
+	{
+		printf("Wrong choice - Enter Your Choice: ");
+		fseek(stdin, 0, SEEK_END);
+		scanf("%d", &manager_choice);
+	}
+	switch (manager_choice) {
+	case 0:
+		printf("Good Bye");
+		exit(0);
+		break;
+	case 1:
+		print_database("opportunity_table.csv");
+		break;
+	case 2:
+		///		printf("Enter customer's ID: ");
+		///		scanf("%d", &customer_ID);
+		///		if (search_existing_customer(customer_ID)) {
+		///			update_customer_details(customer_ID);
+		///		}
+		///		assign_new_customer(char* connected_as);
+		break;
+	case 3:
+		///		todo_list_database();
+		break;
+	case 4:
+		all_reports_menu(connected_as);
+		break;
+	case 5:
+		print_database("data_base_repricing.csv");
+		break;
+	case 6:
+		///		repricing_products();
+		break;
+	default:
+		break;
+	}
+
+}
+
+void employee_menu() {
+	int employee_choice;
+	int customer_ID = 0;
+	char*** database_array = NULL;
+
+	printf("%30.s");
+	printf("***************************************************\n");
+	printf("%30.s");
+	printf("****************** EMPLOYEE MENU ******************\n");
+	printf("%30.s");
+	printf("***************************************************\n");
+	printf("%30.s");
+	printf("**    1. Opportunity Table                       **\n");
+	printf("%30.s");
+	printf("**    2. Search existing customer                **\n");
+	printf("%30.s");
+	printf("**    3. TO-DO List                              **\n");
+	printf("%30.s");
+	printf("**    4. Self Reports                            **\n");
+	printf("%30.s");
+	printf("**    5. Print Price List                        **\n");
+	printf("%30.s");
+	printf("**    0. Exit                                    **\n");
+	printf("%30.s");
+	printf("***************************************************\n\n");
+
+	printf("Enter Your Choice: ");
+	scanf("%d", &employee_choice);
+
+	while (employee_choice < 0 || employee_choice > 5 && (employee_choice <= '/' || employee_choice >= ':')) {
+		printf("Wrong choice - Enter Your Choice: ");
+		fseek(stdin, 0, SEEK_END);
+		scanf("%d", &employee_choice);
+	}
+	switch (employee_choice) {
+	case 0:
+		printf("Good Bye");
+		exit(0);
+		break;
+	case 1:
+		print_database("opportunity_table.csv");
+		break;
+	case 2:
+		///		printf("Enter customer's ID: ");
+		///		scanf("%d", &customer_ID);
+		///		if (search_existing_customer(customer_ID)) {
+		///			update_customer_details(customer_ID);
+		///		}
+		///		assign_new_customer(char* connected_as);
+		break;
+	case 3:
+		///		todo_list_database();
+		break;
+	case 4:
+		///		self_reports(/*employee name*/); 
+		break;
+	case 5:
+		print_database("data_base_repricing.csv");
+		break;
+	default:
+		break;
+	}
+}
+
+
+/*THOSE FUNCTIONS WORKS FINE!*/
+void print_database(char* db_name)
+{
+	int i = 0;
+	int numofrows = 0;
+	char line[LINESIZE] = "";
+	char *item = NULL;
+	char *comma = NULL;
+	int field = 0;
+	char info_matrix[50][LINESIZE] = { "" };
+	FILE* fp = fopen(db_name, "r");
+
+	if (!fp) {
+		printf("File failed to open!\n");
+		exit(1);
+	}
+
+	char t = ' ';
+	for (int u = 0; u < 3; ++u)
+		fscanf(fp, "%c", &t);
+
+	while (fgets(line, LINESIZE, fp)) {
+		strcpy(info_matrix[i], line);
+		++i;
+		++numofrows;
+	}
+
+	if (db_name == "opportunity_table.csv") {
+		int width[] = { 25,16,26,16,23,18,23,23,23 };
+		for (int loop = 0; loop < numofrows; ++loop) {
+			int field = 0;
+			item = info_matrix[loop];
+			while (*item && (comma = strpbrk(item, ",\n"))) {//pointer to each comma and the newline
+				printf("%-*.*s", width[field], comma - item, item);
+				item = comma + 1;//skip the comma or newline
+				field++;
+			}
+			printf("\n");
+		}
+	}
+
+	if (db_name == "data_base_repricing.csv") {
+		int width[] = { 25,16,26,13 };
+
+		for (int loop = 0; loop < numofrows; ++loop) {
+			int field = 0;
+			item = info_matrix[loop];
+			while (*item && (comma = strpbrk(item, ",\n"))) {//pointer to each comma and the newline
+				printf("%-*.*s", width[field], comma - item, item);
+				item = comma + 1;//skip the comma or newline
+				field++;
+			}
+			printf("\n");
+		}
+	}
+	printf("\n\n");
+}
+
+void make_array(char*** db_array, char* db_name, int db_columns) {
+	int i = 0, j = 3, k = 0, l = 0, m = 0;
+	char temp[250];
+	int linesnum = 0;
+	FILE* fp;
+	char line[LINESIZE];
+	fp = fopen(db_name, "r");
+	if (!fp) {
+		printf("File failed to open!\n");
+		exit(1);
+	}
+	while (fgets(line, LINESIZE, fp))
+		linesnum++;
+	db_array = (char *)malloc(sizeof(char*)*linesnum);
+	rewind(fp);
+	for (i; i < linesnum; ++i) {
+		db_array[i] = (char*)malloc(sizeof(char*)*db_columns);
+	}
+	while (fgets(line, LINESIZE, fp)) {
+
+		for (i = 0; i < db_columns; ++i) {
+
+			while (line[j] != ','&& line[j] != '\n')
+			{
+				temp[k] = line[j];
+				++k;
+				++j;
+			}
+			++j;
+			temp[k] = '\0';
+			k = 0;
+			db_array[l][i] = malloc(strlen(temp) + 1);
+			strcpy(db_array[l][i], temp);
+		}
+		l++;
+		j = 0;
+	}
+
+	for (i = 0; i < linesnum; ++i) {
+		for (j = 0; j < db_columns; ++j)
+			printf("%s\t", db_array[i][j]);
+		printf("\n");
+	}
+	fclose(fp);
+}
+
+int login(char* user, char* password) {
+	/*
+	The function gets char* of username and password.
+	The function returns: 1 if the user is a employee, 2 if manager,0 if there is a wrong login details.
+	there needs to be a csv file where each row conatins 3 clumns: username,password and employee type.
+	*/
+	FILE* fp;
+	int i = 0;
+	int j = 0;
+	char line[LINESIZE];
+	char fUser[LINESIZE];
+	char fPassword[LINESIZE];
+	char type[LINESIZE];
+	fp = fopen("data_base_log_in.csv", "r");
+	if (!fp) {
+		printf("File failed to open!\n");
+		exit(1);
+	}
+	while (fgets(line, LINESIZE, fp)) {//gets a row each time every clumn separated by comas
+		i = 0;
+		j = 0;
+		while (line[i] != ',')
+		{
+			if ((line[i] >= 'a' && line[i] <= 'z') || (line[i] >= 'A' && line[i] <= 'Z') || (line[i] >= '0'&&line[i] <= '9')) {//gets username and clears junk
+				fUser[j] = line[i];
+				++j;
+			}
+			++i;
+		}
+		fUser[j] = '\0';
+		if (strcmp(user, fUser) == 0)
+		{
+			j = 0;
+			++i;
+			while (line[i] != ',') {//gets password from line
+				fPassword[j] = line[i];
+				++j;
+				++i;
+			}
+			fPassword[j] = '\0';
+
+			if (strcmp(password, fPassword) == 0) {
+				j = 0;
+				++i;
+				while (line[i] != '\n') {//gets type from line
+					type[j] = line[i];
+					++j;
+					++i;
+				}
+				type[j] = '\0';
+				if (strcmp(type, "manager") == 0) {
+					return 2;
+				}
+				if (strcmp(type, "employee") == 0) {
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+int login_input(char* connected_as) {
+	int log = 0;
+	char user[LINESIZE];
+	char password[LINESIZE];
+	do
+	{
+		puts("Enter username:");
+		gets(user);
+		puts("Enter password:");
+		gets(password);
+		log = login(user, password);
+		if (log == 0)
+			puts("Wrong username or password try again");
+	} while (log == 0);
+	strcpy(connected_as, user);
+	return log;
+}
