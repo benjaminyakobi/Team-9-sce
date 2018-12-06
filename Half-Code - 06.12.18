@@ -1,0 +1,851 @@
+/*Lase edit: 06.12.2018 - binyamin*/
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <malloc.h>
+
+#define LINESIZE 200
+#define SIZE 40
+#define repricing_col 4
+#define opportunity_col 9
+
+int login_input(char* connected_as);
+int login(char* user, char* password);
+void make_array(char*** array, char* database_name, int database_columns);
+void Search_existing_customer();
+FILE* Open_Client_Data();
+FILE* Write_Client_Data();
+void file_insert();
+long int from_char_to_long(char *field);
+struct client *customers = NULL;
+static unsigned long int number_client;
+struct client {
+	long  id;
+	char* firstName;
+	char* lastName;
+	unsigned long int phoneNumber;
+	char* emailAdress;
+	char* city;
+	char* livingAdress;
+	long deal_id;
+	char* dealStatus;
+	char* paymentDetails;
+	char *Status;
+};
+struct deal {
+	unsigned long int deal_number;
+	unsigned int number_of_products;
+	char *type_of_products;
+	char *type_of_deal;
+	int total_price;
+	char *status;
+	char *type_of_payment;
+};
+
+/*EMPLOYEE MENU*/
+void employee_menu(char* connected_as); // Print Employee-Menu
+void print_database(char* db_name); // Open the Opportunity-Table Database and print it
+int search_existing_customer(); // return 0 / 1 if customer dose exist / dose not exist in the database
+void update_existing_customer(); // if customer dose existing in the database >> call this function
+void assign_new_customer(char* connected_as); // if customer dose not existing in the database >> call this function
+void todo_list_database(); // TODO-List Database
+void self_reports(char* name); // Employee Self-Reports
+
+/*MANAGER MENU*/
+void manager_menu(char* connected_as);
+void print_database(char* db_name); // Open the Opportunity-Table Database and print it
+int search_existing_customer(); // return 0 / 1 if customer dose exist / dose not exist in the database
+void update_existing_customer(); // if customer dose existing in the database >> call this function
+void assign_new_customer(char* connected_as); // if customer dose not existing in the database >> call this function
+void todo_list_database(); // TODO-List Database
+void all_reports_menu(); // All Reports Menu to choose specific report
+void repricing_products(); // Repricing products in the database
+
+/*All REPORTS MENU FOR MANAGER ONLY!*/
+void report_by_name(); // { scanf char* name->calls self_reports function }
+void new_customers_last_month(); // from Opportunity Table (MAYBE WE HAVE TO ADD 'DATE OF JOIN' IN THE CUSTOMER DETAILS)
+void new_customers_last_year();// from Opportunity Table (MAYBE WE HAVE TO ADD 'DATE OF JOIN' IN THE CUSTOMER DETAILS)
+void successful_deals_last_month(); // from Opportunity Table, Status: "Win"
+void successful_deals_last_year(); // from Opportunity Table, Status: "Win"
+
+/*NASTIA'S FUNCTIONS 03.12.2018*/
+void Add_new_customer(long ID);
+void Update_customer(int index);
+void Close_client_Data(FILE *name);
+
+int main() {
+	//	connected_as = (char*)malloc(SIZE * sizeof(char));
+	//	int log = login_input(connected_as);
+	file_insert();
+	char* connected_as = NULL;
+	int log = 0;
+	printf("check: 1 - employee /// 2 - manager: ");
+	scanf("%d", &log);
+	if (log == 1)
+		employee_menu(connected_as);
+	if (log == 2)
+		manager_menu(connected_as);
+	return 0;
+}
+
+/*THOSE FUNCTIONS ARE NOT COMPLITED!*/
+void all_reports_menu(char* connected_as) {
+	int report_choice;
+
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("**************** ALL REPORTS MENU ****************\n");
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("**    1. Report By Name of Employee             **\n");
+	printf("%30.s");
+	printf("**    2. Last Month New Customers               **\n");
+	printf("%30.s");
+	printf("**    3. Last Year New Customers                **\n");
+	printf("%30.s");
+	printf("**    4. Last Month Successful Deals            **\n");
+	printf("%30.s");
+	printf("**    5. Last Year Successful Deals             **\n");
+	printf("%30.s");
+	printf("**    0. Go Back To Previous Menu               **\n");
+	printf("%30.s");
+	printf("**************************************************\n\n");
+
+	printf("Enter Your Choice: ");
+	scanf("%d", &report_choice);
+
+	while (report_choice < 0 || report_choice > 5 && (report_choice <= '/' || report_choice >= ':')) {
+		printf("Wrong choice - Enter Your Choice: ");
+		fseek(stdin, 0, SEEK_END);
+		scanf("%d", &report_choice);
+	}
+	switch (report_choice) {
+	case 1:
+		///		report_by_name();
+		break;
+	case 2:
+		///		new_customers_last_month();
+		break;
+	case 3:
+		///		new_customers_last_year();
+		break;
+	case 4:
+		///		successful_deals_last_month();
+		break;
+	case 5:
+		///		successful_deals_last_year();
+		break;
+	case 0:
+		manager_menu(connected_as);
+		break;
+	default:
+
+		break;
+	}
+}
+
+void manager_menu(char* connected_as) {
+	int manager_choice;
+	int customer_ID = 0;
+	char*** database_array = NULL;
+
+
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("****************** MANAGER MENU ******************\n");
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("**    1. Print Opportunity Table                **\n");
+	printf("%30.s");
+	printf("**    2. Search existing customer               **\n");
+	printf("%30.s");
+	printf("**    3. TO-DO List                             **\n");
+	printf("%30.s");
+	printf("**    4. All Reports                            **\n");
+	printf("%30.s");
+	printf("**    5. Print Price List                       **\n");
+	printf("%30.s");
+	printf("**    6. Repricing Products                     **\n");
+	printf("%30.s");
+	printf("**    0. Exit                                   **\n");
+	printf("%30.s");
+	printf("**************************************************\n\n");
+
+	printf("Enter Your Choice: ");
+	scanf("%d", &manager_choice);
+	while (manager_choice < 0 || manager_choice > 6 && (manager_choice <= '/' || manager_choice >= ':'))
+	{
+		printf("Wrong choice - Enter Your Choice: ");
+		fseek(stdin, 0, SEEK_END);
+		scanf("%d", &manager_choice);
+	}
+	switch (manager_choice) {
+	case 0:
+		printf("Good Bye");
+		exit(0);
+		break;
+	case 1:
+		print_database("opportunity_table.csv");
+		manager_menu(connected_as);
+		break;
+	case 2:
+		Search_existing_customer();
+		manager_menu(connected_as);
+		break;
+	case 3:
+		///		todo_list_database();
+		break;
+	case 4:
+		all_reports_menu(connected_as);
+		manager_menu(connected_as);
+		break;
+	case 5:
+		print_database("data_base_repricing.csv");
+		manager_menu(connected_as);
+		break;
+	case 6:
+		///		repricing_products();
+		break;
+	default:
+		break;
+	}
+
+}
+
+void employee_menu(char* connected_as) {
+	int employee_choice;
+	int customer_ID = 0;
+	char*** database_array = NULL;
+
+	printf("%30.s");
+	printf("***************************************************\n");
+	printf("%30.s");
+	printf("****************** EMPLOYEE MENU ******************\n");
+	printf("%30.s");
+	printf("***************************************************\n");
+	printf("%30.s");
+	printf("**    1. Opportunity Table                       **\n");
+	printf("%30.s");
+	printf("**    2. Search existing customer                **\n");
+	printf("%30.s");
+	printf("**    3. TO-DO List                              **\n");
+	printf("%30.s");
+	printf("**    4. Self Reports                            **\n");
+	printf("%30.s");
+	printf("**    5. Print Price List                        **\n");
+	printf("%30.s");
+	printf("**    0. Exit                                    **\n");
+	printf("%30.s");
+	printf("***************************************************\n\n");
+
+	printf("Enter Your Choice: ");
+	scanf("%d", &employee_choice);
+
+	while (employee_choice < 0 || employee_choice > 5 && (employee_choice <= '/' || employee_choice >= ':')) {
+		printf("Wrong choice - Enter Your Choice: ");
+		fseek(stdin, 0, SEEK_END);
+		scanf("%d", &employee_choice);
+	}
+	switch (employee_choice) {
+	case 0:
+		printf("Good Bye");
+		exit(0);
+		break;
+	case 1:
+		print_database("opportunity_table.csv");
+		employee_menu(connected_as);
+		break;
+	case 2:
+		Search_existing_customer();
+		employee_menu(connected_as);
+		break;
+	case 3:
+		///		todo_list_database();
+		break;
+	case 4:
+		///		self_reports(/*employee name*/); 
+		break;
+	case 5:
+		print_database("data_base_repricing.csv");
+		employee_menu(connected_as);
+		break;
+	default:
+		break;
+	}
+}
+
+
+/*NASTIA'S FUNCTIONS 03.12.2018*/
+void Close_client_Data(FILE *name) {
+	fclose(name);
+}
+
+void Add_new_customer(long ID) {
+	char first_name[15];
+	char last_name[15];
+	char Email[50];
+	char city[20];
+	char Adress[20];
+	char paymentDetails[10];
+	customers = (struct client *)realloc(customers, (number_client + 1) * sizeof(struct client));
+	number_client++;
+	//if() - check if NULL
+	customers[number_client - 1].id = ID;
+	customers[number_client - 1].dealStatus = (char *)malloc(4 * sizeof(char));
+	//if() - check if NULL
+	customers[number_client - 1].Status = "NEW";
+	printf("First name:\n");
+	getchar();
+	gets(first_name);
+	customers[number_client - 1].firstName = (char*)malloc((strlen(first_name) + 1) * sizeof(char));
+	if (customers[number_client - 1].firstName == NULL) {
+		printf("\n"); // add the error message
+		return 0;
+	}
+	strcpy(customers[number_client - 1].firstName, first_name);
+	printf("Last name:\n");
+	gets(last_name);
+	customers[number_client - 1].lastName = (char*)malloc((strlen(last_name) + 1) * sizeof(char));
+	if (customers[number_client - 1].lastName == NULL) {
+		printf("\n"); // add the error message
+		return 0;
+	}
+	strcpy(customers[number_client - 1].lastName, last_name);
+	printf("Phone number:\n");
+	scanf("%ld", &customers[number_client - 1].phoneNumber);
+	printf("Email Adress:\n");
+	getchar();
+	gets(Email);
+	customers[number_client - 1].emailAdress = (char *)malloc((strlen(Email) + 1) * sizeof(char));
+	if (customers[number_client - 1].emailAdress == NULL) {
+		printf("\n"); // add the error message
+		return 0;
+	}
+	strcpy(customers[number_client - 1].emailAdress, Email);
+	printf("City:\n");
+	gets(city);
+	customers[number_client - 1].city = (char *)malloc((strlen(city) + 1) * sizeof(char));
+	if (customers[number_client - 1].city == NULL) {
+		printf("\n"); // add the error message
+		return 0;
+	}
+	strcpy(customers[number_client - 1].city, city);
+	printf("Adress:\n");
+	gets(Adress);
+	customers[number_client - 1].livingAdress = (char *)malloc((strlen(Adress) + 1) * sizeof(char));
+	if (customers[number_client - 1].livingAdress == NULL) {
+		printf("\n"); // add the error message
+		return 0;
+	}
+	strcpy(customers[number_client - 1].livingAdress, Adress);
+	printf("payment Details:\n");
+	gets(paymentDetails);
+	customers[number_client - 1].paymentDetails = (char *)malloc((strlen(paymentDetails) + 1) * sizeof(char));
+	if (customers[number_client - 1].paymentDetails == NULL) {
+		printf("\n"); // add the error message
+		return 0;
+	}
+	strcpy(customers[number_client - 1].paymentDetails, paymentDetails);
+	///// Add deal information
+}
+
+void Update_customer(int index) {
+	char Email[50];
+	char city[20];
+	char Adress[20];
+	char paymentDetails[10];
+	unsigned int update_filde;
+	printf("update\n");
+	scanf("%d", &update_filde);
+	if (update_filde == 1) {
+		// update_filde = 1 , user update the Email adress 
+		if (customers[index].emailAdress != NULL) {
+			free(customers[index].emailAdress);
+		}
+		printf("Email Adress:\n");
+		scanf("%s", &Email);
+		customers[index].emailAdress = (char *)malloc((strlen(Email) + 1) * sizeof(char));
+		if (customers[index].emailAdress == NULL) {
+			printf("\n"); // add the error message
+			return 0;
+		}
+		strcpy(customers[index].emailAdress, Email);
+	}
+	else if (update_filde == 2) {
+		// update_filde = 2 , user update the client's Adress
+		if (customers[index].city != NULL) {
+			free(customers[index].city);
+		}
+		printf("City:\n");
+		gets(city);
+		customers[index].city = (char *)malloc((strlen(city) + 1) * sizeof(char));
+		if (customers[index].city == NULL) {
+			printf("\n"); // add the error message
+			return 0;
+		}
+		strcpy(customers[index].city, city);
+		if (customers[index].livingAdress != NULL) {
+			free(customers[index].livingAdress);
+		}
+		printf("Adress:\n");
+		gets(Adress);
+		customers[index].livingAdress = (char *)malloc((strlen(Adress) + 1) * sizeof(char));
+		if (customers[index].livingAdress == NULL) {
+			printf("\n"); // add the error message
+			return 0;
+		}
+		strcpy(customers[index].livingAdress, Adress);
+	}
+	else if (update_filde == 3) {
+		// update_filde = 3, user update the paymentDetails
+		if (customers[index].paymentDetails != NULL) {
+			free(customers[index].paymentDetails);
+		}
+		printf("payment Details:\n");
+		gets(paymentDetails);
+		customers[index].paymentDetails = (char *)malloc((strlen(paymentDetails) + 1) * sizeof(char));
+		if (customers[index].paymentDetails == NULL) {
+			printf("\n"); // add the error message
+			return 0;
+		}
+		strcpy(customers[index].paymentDetails, paymentDetails);
+	}
+	else if (update_filde == 4) {
+		//update_filde = 4, user update the phone Number
+		printf("Phone number:\n");
+		scanf("%ld", &customers[index].phoneNumber);
+
+	}
+}
+
+
+/*THOSE FUNCTIONS WORKS FINE!*/
+void file_insert() {
+	FILE *client = Open_Client_Data();
+	char information[150];
+	char field[35];
+	char num;
+	int index = 0, i = 0, j = 0, num_field = 0;
+	number_client = 0;
+	while (!feof(client))
+	{
+		fgets(information, 149, client);
+		customers = (struct client *)realloc(customers, (number_client + 1) * sizeof(struct client));
+		num_field = 0;
+		for (index = 0; information[index] != '\0'; ++index) {
+			i = 0;
+			while (information[index] != ',' && i < 15) {
+				field[i] = information[index];
+				++index;
+				++i;
+			}
+			field[i] = '\0';
+			if (num_field == 0) {
+				customers[number_client].id = from_char_to_long(field);
+			}
+			else if (num_field == 1) {
+				customers[number_client].firstName = (char*)malloc((strlen(field) + 1) * sizeof(char));
+				if (customers[number_client].firstName == NULL) {
+					printf("\n"); // add the error message
+					return 0;
+				}
+				strcpy(customers[number_client].firstName, field);
+			}
+			else if (num_field == 2) {
+				customers[number_client].lastName = (char*)malloc((strlen(field) + 1) * sizeof(char));
+				if (customers[number_client].lastName == NULL) {
+					printf("\n"); // add the error message
+					return 0;
+				}
+				strcpy(customers[number_client].lastName, field);
+			}
+			else if (num_field == 3) {
+				customers[number_client].phoneNumber = from_char_to_long(field);
+			}
+			else if (num_field == 4) {
+				customers[number_client].emailAdress = (char*)malloc((strlen(field) + 1) * sizeof(char));
+				if (customers[number_client].emailAdress == NULL) {
+					printf("\n"); // add the error message
+					return 0;
+				}
+				strcpy(customers[number_client].emailAdress, field);
+			}
+			else if (num_field == 5) {
+				customers[number_client].city = (char*)malloc((strlen(field) + 1) * sizeof(char));
+				if (customers[number_client].city == NULL) {
+					printf("\n"); // add the error message
+					return 0;
+				}
+				strcpy(customers[number_client].city, field);
+			}
+			else if (num_field == 6) {
+				customers[number_client].livingAdress = (char*)malloc((strlen(field) + 1) * sizeof(char));
+				if (customers[number_client].livingAdress == NULL) {
+					printf("\n"); // add the error message
+					return 0;
+				}
+				strcpy(customers[number_client].livingAdress, field);
+			}
+			else if (num_field == 7) {
+				customers[number_client].deal_id = from_char_to_long(field);
+			}
+			else if (num_field == 8) {
+				customers[number_client].dealStatus = (char*)malloc((strlen(field) + 1) * sizeof(char));
+				if (customers[number_client].dealStatus == NULL) {
+					printf("\n"); // add the error message
+					return 0;
+				}
+				strcpy(customers[number_client].dealStatus, field);
+			}
+			else if (num_field == 9) {
+				customers[number_client].paymentDetails = (char*)malloc((strlen(field) + 1) * sizeof(char));
+				if (customers[number_client].paymentDetails == NULL) {
+					printf("\n"); // add the error message
+					return 0;
+				}
+				strcpy(customers[number_client].paymentDetails, field);
+			}
+			else if (num_field == 10) {
+				customers[number_client].Status = (char*)malloc((strlen(field) + 1) * sizeof(char));
+				if (customers[number_client].Status == NULL) {
+					printf("\n"); // add the error message
+					return 0;
+				}
+				strcpy(customers[number_client].Status, field);
+			}
+			++num_field;
+		}
+		++number_client;
+	}
+	Close_client_Data(client);
+}
+
+void Search_existing_customer() {
+	unsigned long int search_ID;
+	long i;
+	printf("Enter customer's ID\n");
+	scanf("%ld", &search_ID);
+	for (i = 0; i < number_client; ++i) {
+		if (customers[i].id == search_ID) {
+			Update_customer(i);
+			return;
+		}
+	}
+	Add_new_customer(search_ID);
+}
+
+FILE* Open_Client_Data() {
+	FILE *fp = NULL;
+	int choose = -1;
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("**************** OPEN FILE TO READ ***************\n");
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("**    1. Cliens Data Base                       **\n");
+	printf("%30.s");
+	printf("**    2. System Users Database                  **\n");
+	printf("%30.s");
+	printf("**    3. Products Database                      **\n");
+	printf("%30.s");
+	printf("**    4. Opportunity Table Database             **\n");
+	printf("%30.s");
+	printf("**    0. Exit                                   **\n");
+	printf("%30.s");
+	printf("**************************************************\n\n");
+
+	printf("Enter Your Choice: ");
+	scanf("%d", &choose);
+	while (choose < 0 || choose > 4 && (choose <= '/' || choose >= ':'))
+	{
+		printf("Wrong choice - Enter Your Choice: ");
+		fseek(stdin, 0, SEEK_END);
+		scanf("%d", &choose);
+	}
+
+	switch (choose) {
+	case 0:
+		printf("Good Bye");
+		exit(0);
+		break;
+	case 1:
+		fp = fopen("data_base_client.csv", "r");
+		break;
+	case 2:
+		fp = fopen("data_base_log_in.csv", "r");
+		break;
+	case 3:
+		fp = fopen("data_base_repricing.csv", "r");
+		break;
+	case 4:
+		fp = fopen("opportunity_table.csv", "r");
+		break;
+	default:
+		break;
+	}
+	if (fp == NULL) {
+		printf("\nFailed to open this File!\n\n");
+		return fp;
+	}
+	printf("\nThe file has successfuly opened!\n\n");
+	return fp;
+}
+
+FILE* Write_Client_Data() {
+	FILE *fp = NULL;
+	int choose = -1;
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("*************** OPEN FILE TO WRITE ***************\n");
+	printf("%30.s");
+	printf("**************************************************\n");
+	printf("%30.s");
+	printf("**    1. Cliens Data Base                       **\n");
+	printf("%30.s");
+	printf("**    2. System Users Database                  **\n");
+	printf("%30.s");
+	printf("**    3. Products Database                      **\n");
+	printf("%30.s");
+	printf("**    4. Opportunity Table Database             **\n");
+	printf("%30.s");
+	printf("**    0. Exit                                   **\n");
+	printf("%30.s");
+	printf("**************************************************\n\n");
+
+	printf("Enter Your Choice: ");
+	scanf("%d", &choose);
+	while (choose < 0 || choose > 4 && (choose <= '/' || choose >= ':'))
+	{
+		printf("Wrong choice - Enter Your Choice: ");
+		fseek(stdin, 0, SEEK_END);
+		scanf("%d", &choose);
+	}
+
+	switch (choose) {
+	case 0:
+		printf("Good Bye");
+		exit(0);
+		break;
+	case 1:
+		fp = fopen("data_base_client.csv", "w");
+		break;
+	case 2:
+		fp = fopen("data_base_log_in.csv", "w");
+		break;
+	case 3:
+		fp = fopen("data_base_repricing.csv", "w");
+		break;
+	case 4:
+		fp = fopen("opportunity_table.csv", "w");
+		break;
+	}
+	if (fp == NULL) {
+		printf("\nFailed to open this File!\n\n");
+		return fp;
+	}
+	printf("\nThe file has successfuly opened!\n\n");
+	return fp;
+}
+
+long int from_char_to_long(char *field) {
+	long int num = 0;
+	int i;
+	for (i = 0; field[i] != '\0'; ++i) {
+		if (field[i] >= '0'&&field[i] <= '9')
+			num = num * 10 + (field[i] - '0');
+	}
+	return num;
+}
+
+void print_database(char* db_name)
+{
+	int i = 0;
+	int numofrows = 0;
+	char line[LINESIZE] = "";
+	char *item = NULL;
+	char *comma = NULL;
+	int field = 0;
+	char info_matrix[50][LINESIZE] = { "" };
+
+	FILE* fp = fopen(db_name, "r");
+
+	if (!fp) {
+		printf("File failed to open!\n");
+		exit(1);
+	}
+
+	char t = ' ';
+	for (int u = 0; u < 3; ++u)
+		fscanf(fp, "%c", &t);
+
+	while (fgets(line, LINESIZE, fp)) {
+		strcpy(info_matrix[i], line);
+		++i;
+		++numofrows;
+	}
+
+	if (db_name == "opportunity_table.csv") {
+		int width[] = { 25,16,26,16,23,18,23,23,23 };
+		for (int loop = 0; loop < numofrows; ++loop) {
+			int field = 0;
+			item = info_matrix[loop];
+			while (*item && (comma = strpbrk(item, ",\n"))) {//pointer to each comma and the newline
+				printf("%-*.*s", width[field], comma - item, item);
+				item = comma + 1;//skip the comma or newline
+				field++;
+			}
+			printf("\n");
+		}
+	}
+
+	if (db_name == "data_base_repricing.csv") {
+		int width[] = { 25,16,26,13 };
+
+		for (int loop = 0; loop < numofrows; ++loop) {
+			int field = 0;
+			item = info_matrix[loop];
+			while (*item && (comma = strpbrk(item, ",\n"))) {//pointer to each comma and the newline
+				printf("%-*.*s", width[field], comma - item, item);
+				item = comma + 1;//skip the comma or newline
+				field++;
+			}
+			printf("\n");
+		}
+	}
+	printf("\n\n");
+}
+
+void make_array(char*** db_array, char* db_name, int db_columns) {
+	int i = 0, j = 3, k = 0, l = 0, m = 0;
+	char temp[250];
+	int linesnum = 0;
+	FILE* fp;
+	char line[LINESIZE];
+	fp = fopen(db_name, "r");
+	if (!fp) {
+		printf("File failed to open!\n");
+		exit(1);
+	}
+	while (fgets(line, LINESIZE, fp))
+		linesnum++;
+
+	db_array = (char*)malloc(sizeof(char*)*linesnum);
+	rewind(fp);
+	for (i; i < linesnum; ++i) {
+		db_array[i] = (char*)malloc(sizeof(char*)*db_columns);
+	}
+
+	while (fgets(line, LINESIZE, fp)) {
+		for (i = 0; i < db_columns; ++i) {
+
+			while (line[j] != ','&& line[j] != '\n')
+			{
+				temp[k] = line[j];
+				++k;
+				++j;
+			}
+			++j;
+			temp[k] = '\0';
+			k = 0;
+			db_array[l][i] = malloc(strlen(temp) + 1);
+			strcpy(db_array[l][i], temp);
+		}
+		l++;
+		j = 0;
+	}
+	for (i = 0; i < linesnum; ++i) {
+		for (j = 0; j < db_columns; ++j)
+			printf("%s\t", db_array[i][j]);
+		printf("\n");
+	}
+	fclose(fp);
+}
+
+int login(char* user, char* password) {
+	/*
+	The function gets char* of username and password.
+	The function returns: 1 if the user is a employee, 2 if manager,0 if there is a wrong login details.
+	there needs to be a csv file where each row conatins 3 clumns: username,password and employee type.
+	*/
+	FILE* fp;
+	int i = 0;
+	int j = 0;
+	char line[LINESIZE];
+	char fUser[LINESIZE];
+	char fPassword[LINESIZE];
+	char type[LINESIZE];
+	fp = fopen("data_base_log_in.csv", "r");
+	if (!fp) {
+		printf("File failed to open!\n");
+		exit(1);
+	}
+	while (fgets(line, LINESIZE, fp)) {//gets a row each time every clumn separated by comas
+		i = 0;
+		j = 0;
+		while (line[i] != ',')
+		{
+			if ((line[i] >= 'a' && line[i] <= 'z') || (line[i] >= 'A' && line[i] <= 'Z') || (line[i] >= '0'&&line[i] <= '9')) {//gets username and clears junk
+				fUser[j] = line[i];
+				++j;
+			}
+			++i;
+		}
+		fUser[j] = '\0';
+		if (strcmp(user, fUser) == 0)
+		{
+			j = 0;
+			++i;
+			while (line[i] != ',') {//gets password from line
+				fPassword[j] = line[i];
+				++j;
+				++i;
+			}
+			fPassword[j] = '\0';
+
+			if (strcmp(password, fPassword) == 0) {
+				j = 0;
+				++i;
+				while (line[i] != '\n') {//gets type from line
+					type[j] = line[i];
+					++j;
+					++i;
+				}
+				type[j] = '\0';
+				if (strcmp(type, "manager") == 0) {
+					return 2;
+				}
+				if (strcmp(type, "employee") == 0) {
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+int login_input(char* connected_as) {
+	int log = 0;
+	char user[LINESIZE];
+	char password[LINESIZE];
+	do
+	{
+		puts("Enter username:");
+		gets(user);
+		puts("Enter password:");
+		gets(password);
+		log = login(user, password);
+		if (log == 0)
+			puts("Wrong username or password try again");
+	} while (log == 0);
+	strcpy(connected_as, user);
+	return log;
+}
