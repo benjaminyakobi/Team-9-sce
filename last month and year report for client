@@ -1,0 +1,41 @@
+void new_customers_last_month(); // from Opportunity Table (MAYBE WE HAVE TO ADD 'DATE OF JOIN' IN THE CUSTOMER DETAILS)
+void new_customers_last_year();// from Opportunity Table (MAYBE WE HAVE TO ADD 'DATE OF JOIN' IN THE CUSTOMER DETAILS)
+/*NEW FUNCTIONS - NASTIA*/
+void new_customers_last_month() {
+	FILE *last_month_client = fopen("new customer in last month.csv", "w");
+	if (last_month_client == NULL) {
+		printf("Error\n");
+		return;
+	}
+	time_t t = time(NULL);
+	struct tm* aTm = localtime(&t);
+	int this_month = aTm->tm_mon + 1;
+	int i;
+	for (i = 0; i < number_client; ++i) {
+		if ((customers[i].year == aTm->tm_year + 1900) || ((customers[i].year == aTm->tm_year + 1899) && (this_month == 1))) {
+			if (((this_month == 1) && (customers[i].month == 12)) || (customers[i].month == this_month - 1)) {
+				fprintf(last_month_client, "%ld,%s,%s,%ld,%s,%s,%s,%ld,%s,%s,%s,%d,%d,%d\n", customers[i].firstName, customers[i].lastName, customers[i].phoneNumber, customers[i].emailAdress, customers[i].city, customers[i].livingAdress, customers[i].deal_id, customers[i].dealStatus, customers[i].paymentDetails, customers[i].Status, customers[i].day, customers[i].month, customers[i].year);
+			}
+		}
+	}
+	printf("Your file is ready\n");
+	fclose(last_month_client);
+}
+void new_customers_last_year() {
+	FILE *last_year_client = fopen("new customer in last year.csv", "w");
+	if (last_year_client == NULL) {
+		printf("Error\n");
+		return;
+	}
+	time_t t = time(NULL);
+	struct tm* aTm = localtime(&t);
+	int this_year = aTm->tm_year + 1900;
+	int i;
+	for (i = 0; i < number_client; ++i) {
+		if (customers[i].year == this_year - 1) {
+			fprintf(last_year_client, "%ld,%s,%s,%ld,%s,%s,%s,%ld,%s,%s,%s,%d,%d,%d\n", customers[i].firstName, customers[i].lastName, customers[i].phoneNumber, customers[i].emailAdress, customers[i].city, customers[i].livingAdress, customers[i].deal_id, customers[i].dealStatus, customers[i].paymentDetails, customers[i].Status, customers[i].day, customers[i].month, customers[i].year);
+		}
+	}
+	printf("Your file is ready\n");
+	fclose(last_year_client);
+}
