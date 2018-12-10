@@ -1,0 +1,206 @@
+
+int login(char* user, char* password) {
+	/*
+	The function gets char* of username and password.
+	The function returns: 1 if the user is a employee, 2 if manager,0 if there is a wrong login details.
+	there needs to be a csv file where each row conatins 3 clumns: username,password and employee type.
+	*/
+	FILE* fp;
+	int i = 0;
+	int j = 0;
+	char line[LINESIZE];
+	char fUser[LINESIZE];
+	char fPassword[LINESIZE];
+	char type[LINESIZE];
+	fp = fopen("data_base_log_in.csv", "r");
+	if (!fp) {
+		printf("File failed to open!\n");
+		exit(1);
+	}
+	while (fgets(line, LINESIZE, fp)) {//gets a row each time every clumn separated by comas
+		i = 0;
+		j = 0;
+		while (line[i] != ',')
+		{
+			if ((line[i] >= 'a' && line[i] <= 'z') || (line[i] >= 'A' && line[i] <= 'Z') || (line[i] >= '0'&&line[i] <= '9')) {//gets username and clears junk
+				fUser[j] = line[i];
+				++j;
+			}
+			++i;
+		}
+		fUser[j] = '\0';
+		if (strcmp(user, fUser) == 0)
+		{
+			j = 0;
+			++i;
+			while (line[i] != ',') {//gets password from line
+				fPassword[j] = line[i];
+				++j;
+				++i;
+			}
+			fPassword[j] = '\0';
+
+			if (strcmp(password, fPassword) == 0) {
+				j = 0;
+				++i;
+				while (line[i] != '\n') {//gets type from line
+					type[j] = line[i];
+					++j;
+					++i;
+				}
+				type[j] = '\0';
+				if (strcmp(type, "manager") == 0) {
+					return 2;
+				}
+				if (strcmp(type, "employee") == 0) {
+					return 1;
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+int login_input(char* connected_as) {
+	int log = 0;
+	char user[LINESIZE];
+	char password[LINESIZE];
+	do
+	{
+		puts("Enter username:");
+		gets(user);
+		puts("Enter password:");
+		gets(password);
+		log = login(user, password);
+		if (log == 0)
+			puts("Wrong username or password try again");
+	} while (log == 0);
+	strcpy(connected_as, user);
+	return log;
+}
+
+char*** make_array(char*** db_array, char* db_name, int db_columns) {
+	int i = 0, j = 0, k = 0, l = 0, m = 0;
+	char temp[250];
+	int linesnum = 0;
+	FILE* fp;
+	char line[LINESIZE];
+	fp = fopen(db_name, "r");
+	if (!fp) {
+		printf("File failed to open!\n");
+		exit(1);
+	}
+	while (fgets(line, LINESIZE, fp))
+		linesnum++;
+
+	db_array = (char*)malloc(sizeof(char*)*linesnum);
+	rewind(fp);
+	for (i; i < linesnum; ++i) {
+		db_array[i] = (char*)malloc(sizeof(char*)*db_columns);
+	}
+
+	while (fgets(line, LINESIZE, fp)) {
+		for (i = 0; i < db_columns; ++i) {
+
+			while (line[j] != ','&& line[j] != '\n')
+			{
+				temp[k] = line[j];
+				++k;
+				++j;
+			}
+			++j;
+			temp[k] = '\0';
+			k = 0;
+			db_array[l][i] = malloc(strlen(temp) + 1);
+			strcpy(db_array[l][i], temp);
+		}
+		l++;
+		j = 0;
+	}
+	return db_array;
+}
+
+void repricing_products() { // Repricing products in the database
+	char *** array=NULL;
+	int i,choice,j ;
+	float newprice,oldprice;
+	char line[LINESIZE];
+	array=make_array(array, "data_base_repricing.csv", 4);
+	int linesnum = 0;
+	FILE *fp = fopen("data_base_repricing.csv", "r");
+	if (!fp) {
+		printf("File failed to open!\n");
+		exit(1);
+	}
+	while (fgets(line, LINESIZE, fp))
+		linesnum++;
+	//print_database("data_base_repricing.csv"); problem with printing a tabele after change
+	puts("Choose what price would you like to change:");
+	for ( i = 1; i < linesnum; i++)
+	{
+		printf("%d) %s\n", i,array[i][0]);
+	}
+	scanf("%d", &choice);
+	oldprice = strtof(array[choice][2], NULL);
+	puts("enter the new price:");
+	scanf("%f", &newprice);
+	sprintf(array[choice][2], "%.2f", newprice);
+	sprintf(array[choice][1], "%.2f", oldprice);
+	sprintf(array[choice][3], "%.3f", fabs(100-(newprice*100/oldprice)));
+	FILE *f = Write_Reprice();
+	for ( i = 0; i < linesnum; ++i)
+	{
+		for ( j = 0; j <repricing_col; j++)
+		{
+			fputs(array[i][j], f);
+			fputs(",", f);
+		}
+		fputs("\n", f);
+	}
+}
+
+FILE* Write_Reprice(){//opens a file for repricing database
+	FILE* fp = NULL;
+	fp = fopen("data_base_repricing.csv", "w");
+	if (!fp) {
+		puts("ERROR");
+		exit(1);
+	}
+	return fp;
+}
+
+void report_by_name() {
+	char name[40];
+	puts("enter a employee name:");
+	gets(name);
+	self_reports(name);
+}
+
+void self_reports(char* name) {//find better printing way
+	char*** array=NULL;
+	array = make_array(array, "opportunity_table.csv", opportunity_col);
+	int i = 0,j,flag=0;
+	int linesnum = 0;
+	char line[LINESIZE] = "";
+	FILE *fp = fopen("opportunity_table.csv", "r");
+	if (!fp) {
+		printf("File failed to open!\n");
+		exit(1);
+	}
+	while (fgets(line, LINESIZE, fp))
+		linesnum++;
+	for ( i = 1; i < linesnum; i++)
+	{
+		if (strcmp(array[i][sales_representative],name)==0)
+		{
+			for ( j = 0; j < opportunity_col; j++)
+			{
+				printf("%s\t", array[i][j]);
+			}
+			puts("");
+			flag = 1;
+		}
+	}
+	if (flag == 0)
+		printf("no opportunity was found");
+}
