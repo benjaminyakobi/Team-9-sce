@@ -124,7 +124,7 @@ int main() {
 	return 0;
 }
 
-/*THOSE FUNCTIONS ARE NOT COMPLITED YET!*/
+/*THOSE FUNCTIONS COMPLITED & WORKS FINE!*/
 void manager_menu(char* connected_as) {
 	int manager_choice;
 	int customer_ID = 0;
@@ -272,9 +272,6 @@ void employee_menu(char* connected_as) {
 	}
 }
 
-/*works 95% but nastia will fix it
-after fix remove -2 from for loop in functions:
-"successful_deals_last_month" & "successful_deals_last_year"*/
 void file_insert_oppurtunity() {
 	FILE *oppu = fopen("opportunity_table.csv", "r");
 	if (oppu == NULL) {
@@ -368,7 +365,6 @@ void file_insert_oppurtunity() {
 	Close_client_Data(oppu);
 }
 
-/*THOSE FUNCTIONS COMPLITED & WORKS FINE!*/
 void all_reports_menu(char* connected_as) {
 	int report_choice;
 	cyan();
@@ -654,6 +650,10 @@ void Add_new_customer(long ID) {
 	//if() - check if NULL
 	boldgreen();
 	customers[number_client - 1].Status = "NEW";
+	yellow();
+	printf("\nThis customer dose not exist!\n");
+	printf("Enter new details bellow:\n\n");
+	boldgreen();
 	printf("First name:\n");
 	getchar();
 	gets(first_name);
@@ -729,12 +729,13 @@ void Update_customer(int index) {
 	struct tm* aTm = localtime(&t);
 	int flag = 0;
 	while (flag == 0) {
-		boldgreen();
-		printf("What information do you want to update?\n 1. client's Email\n 2. client's Adrees\n 3. the payment Details\n 4.  the phone Number\n 5. the client status\n 0. Exit\n ");
+		yellow();
+		printf("What information do you want to update?\n");
+		printf("1. Client's Email\n 2. Client's Adrees\n 3. Client's payment details\n 4. Client's phone number\n 5. Client's Status\n 0. Save\n ");
 		scanf("%d", &update_filde);
 		switch (update_filde)
 		{
-		case 1: 
+		case 1:
 			// update_filde = 1 , user update the Email adress 
 			if (customers[index].emailAdress != NULL) {
 				free(customers[index].emailAdress);
@@ -748,7 +749,7 @@ void Update_customer(int index) {
 			}
 			strcpy(customers[index].emailAdress, Email);
 			break;
-		case 2: 
+		case 2:
 			// update_filde = 2 , user update the client's Adress
 			if (customers[index].city != NULL) {
 				free(customers[index].city);
@@ -775,7 +776,7 @@ void Update_customer(int index) {
 			}
 			strcpy(customers[index].livingAdress, Adress);
 			break;
-		case  3: 
+		case  3:
 			// update_filde = 3, user update the paymentDetails
 			if (customers[index].paymentDetails != NULL) {
 				free(customers[index].paymentDetails);
@@ -790,7 +791,7 @@ void Update_customer(int index) {
 			}
 			strcpy(customers[index].paymentDetails, paymentDetails);
 			break;
-		case 4: 
+		case 4:
 			//update_filde = 4, user update the phone Number
 			printf("Phone number:\n");
 			scanf("%ld", &customers[index].phoneNumber);
