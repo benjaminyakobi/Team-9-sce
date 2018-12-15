@@ -87,6 +87,15 @@ struct oppurtunity {
 	unsigned int number_of_products;
 	unsigned long int deal_number;
 };
+struct deal {
+	unsigned long int deal_number;
+	unsigned int number_of_products;
+	char *type_of_products;
+	char *type_of_deal;
+	int total_price;
+	char *status;
+	char *type_of_payment;
+};
 struct client *customers = NULL;
 struct oppurtunity *opp = NULL;
 static unsigned long int number_oppurtunity;
