@@ -41,6 +41,7 @@ void successful_deals_last_year(); // from Opportunity Table, Status: "Win"
 void Close_client_Data(FILE *name);
 FILE* Open_Client_Data();
 FILE* Write_Client_Data();
+void Write_to_Client_Data();
 void file_insert_client();
 void file_insert_oppurtunity();
 long int from_char_to_long(char *field);
@@ -283,7 +284,7 @@ void file_insert_oppurtunity() {
 		num_field = 0;
 		for (index = 0; information[index] != '\0'; ++index) {
 			i = 0;
-			while (information[index] != ',' && i < 35 && information[index] != '\n') {
+			while (information[index] != ',' && i < 35 && information[index] != '\n' && !feof(oppu)) {
 				field[i] = information[index];
 				++index;
 				++i;
@@ -436,7 +437,7 @@ void successful_deals_last_month() {
 	struct tm* aTm = localtime(&t);
 	int this_month = aTm->tm_mon + 1;
 	int i;
-	for (i = 0; i < number_oppurtunity - 2; ++i) {
+	for (i = 0; i < number_oppurtunity; ++i) {
 		if ((opp[i].last_communication.year == aTm->tm_year + 1900) || ((opp[i].last_communication.year == aTm->tm_year + 1899) && (this_month == 1))) {
 			if (((this_month == 1) && (opp[i].last_communication.month == 12)) || (opp[i].last_communication.month == this_month - 1)) {
 				if (strcmp(opp[i].status, "closed") == 0) {
@@ -466,7 +467,7 @@ void successful_deals_last_year() {
 	struct tm* aTm = localtime(&t);
 	int this_year = aTm->tm_year + 1900;
 	int i;
-	for (i = 0; i < number_oppurtunity - 2; ++i) {
+	for (i = 0; i < number_oppurtunity; ++i) {
 		if ((strcmp(opp[i].status, "closed")) == 0 && (opp[i].last_communication.year == this_year - 1)) {
 			fprintf(deals, "%s,%f,%s,%f,%s,%d,%d,%d,%d,%d,%d,%s,%d,%ld\n", opp[i].title, opp[i].worth, opp[i].status, opp[i].confidence, opp[i].seler_name,
 				opp[i].close_date.day, opp[i].close_date.month, opp[i].close_date.year, opp[i].last_communication.day, opp[i].last_communication.month,
@@ -603,7 +604,7 @@ void repricing_products() { // Repricing products in the database
 	sprintf(array[choice][2], "%.2f", newprice);
 	sprintf(array[choice][1], "%.2f", oldprice);
 	sprintf(array[choice][3], "%.3f", fabs(100 - (newprice * 100 / oldprice)));
-	
+
 	fclose(fp);
 	FILE *f = Write_Reprice();
 	for (i = 0; i < linesnum; ++i)
@@ -654,6 +655,7 @@ void Add_new_customer(long ID) {
 	}
 	strcpy(customers[number_client - 1].firstName, first_name);
 	printf("Last name:\n");
+	getchar();
 	gets(last_name);
 	customers[number_client - 1].lastName = (char*)malloc((strlen(last_name) + 1) * sizeof(char));
 	if (customers[number_client - 1].lastName == NULL) {
@@ -673,6 +675,7 @@ void Add_new_customer(long ID) {
 	}
 	strcpy(customers[number_client - 1].emailAdress, Email);
 	printf("City:\n");
+	getchar();
 	gets(city);
 	customers[number_client - 1].city = (char *)malloc((strlen(city) + 1) * sizeof(char));
 	if (customers[number_client - 1].city == NULL) {
@@ -681,6 +684,7 @@ void Add_new_customer(long ID) {
 	}
 	strcpy(customers[number_client - 1].city, city);
 	printf("Adress:\n");
+	getchar();
 	gets(Adress);
 	customers[number_client - 1].livingAdress = (char *)malloc((strlen(Adress) + 1) * sizeof(char));
 	if (customers[number_client - 1].livingAdress == NULL) {
@@ -689,6 +693,7 @@ void Add_new_customer(long ID) {
 	}
 	strcpy(customers[number_client - 1].livingAdress, Adress);
 	printf("payment Details:\n");
+	getchar();
 	gets(paymentDetails);
 	customers[number_client - 1].paymentDetails = (char *)malloc((strlen(paymentDetails) + 1) * sizeof(char));
 	if (customers[number_client - 1].paymentDetails == NULL) {
@@ -700,6 +705,7 @@ void Add_new_customer(long ID) {
 	customers[number_client - 1].start.day = aTm->tm_mday;
 	customers[number_client - 1].start.month = aTm->tm_mon + 1;
 	customers[number_client - 1].start.year = aTm->tm_year + 1900;
+	Write_to_Client_Data();
 	reset();
 }
 
@@ -712,83 +718,97 @@ void Update_customer(int index) {
 	unsigned int update_filde;
 	time_t t = time(NULL);
 	struct tm* aTm = localtime(&t);
-	boldgreen();
-	printf("update\n");
-	scanf("%d", &update_filde);
-	if (update_filde == 1) {
-		// update_filde = 1 , user update the Email adress 
-		if (customers[index].emailAdress != NULL) {
-			free(customers[index].emailAdress);
+	int flag = 0;
+	while (flag == 0) {
+		boldgreen();
+		printf("What information do you want to update?\n 1. client's Email\n 2. client's Adrees\n 3. the payment Details\n 4.  the phone Number\n 5. the client status\n 0. Exit\n ");
+		scanf("%d", &update_filde);
+		switch (update_filde)
+		{
+		case 1: 
+			// update_filde = 1 , user update the Email adress 
+			if (customers[index].emailAdress != NULL) {
+				free(customers[index].emailAdress);
+			}
+			printf("Email Adress:\n");
+			scanf("%s", &Email);
+			customers[index].emailAdress = (char *)malloc((strlen(Email) + 1) * sizeof(char));
+			if (customers[index].emailAdress == NULL) {
+				printf("\n"); // add the error message
+				return 0;
+			}
+			strcpy(customers[index].emailAdress, Email);
+			break;
+		case 2: 
+			// update_filde = 2 , user update the client's Adress
+			if (customers[index].city != NULL) {
+				free(customers[index].city);
+			}
+			printf("City:\n");
+			getchar();
+			gets(city);
+			customers[index].city = (char *)malloc((strlen(city) + 1) * sizeof(char));
+			if (customers[index].city == NULL) {
+				printf("\n"); // add the error message
+				return 0;
+			}
+			strcpy(customers[index].city, city);
+			if (customers[index].livingAdress != NULL) {
+				free(customers[index].livingAdress);
+			}
+			printf("Adress:\n");
+			getchar();
+			gets(Adress);
+			customers[index].livingAdress = (char *)malloc((strlen(Adress) + 1) * sizeof(char));
+			if (customers[index].livingAdress == NULL) {
+				printf("\n"); // add the error message
+				return 0;
+			}
+			strcpy(customers[index].livingAdress, Adress);
+			break;
+		case  3: 
+			// update_filde = 3, user update the paymentDetails
+			if (customers[index].paymentDetails != NULL) {
+				free(customers[index].paymentDetails);
+			}
+			printf("payment Details:\n");
+			getchar();
+			gets(paymentDetails);
+			customers[index].paymentDetails = (char *)malloc((strlen(paymentDetails) + 1) * sizeof(char));
+			if (customers[index].paymentDetails == NULL) {
+				printf("\n"); // add the error message
+				return 0;
+			}
+			strcpy(customers[index].paymentDetails, paymentDetails);
+			break;
+		case 4: 
+			//update_filde = 4, user update the phone Number
+			printf("Phone number:\n");
+			scanf("%ld", &customers[index].phoneNumber);
+			break;
+		case 5:
+			//update_filde = 5, user update the client status
+			if (customers[index].Status != NULL) {
+				free(customers[index].Status);
+			}
+			getchar();
+			gets(status);
+			customers[index].Status = (char *)malloc((strlen(status) + 1) * sizeof(char));
+			if (customers[index].Status == NULL) {
+				printf("\n"); // add the error message
+				return 0;
+			}
+			strcpy(customers[index].Status, status);
+			customers[index].start.day = aTm->tm_mday;
+			customers[index].start.month = aTm->tm_mon + 1;
+			customers[index].start.year = aTm->tm_year + 1900;
+			break;
+		default:
+			flag = 1;
+			break;
 		}
-		printf("Email Adress:\n");
-		scanf("%s", &Email);
-		customers[index].emailAdress = (char *)malloc((strlen(Email) + 1) * sizeof(char));
-		if (customers[index].emailAdress == NULL) {
-			printf("\n"); // add the error message
-			return 0;
-		}
-		strcpy(customers[index].emailAdress, Email);
 	}
-	else if (update_filde == 2) {
-		// update_filde = 2 , user update the client's Adress
-		if (customers[index].city != NULL) {
-			free(customers[index].city);
-		}
-		printf("City:\n");
-		gets(city);
-		customers[index].city = (char *)malloc((strlen(city) + 1) * sizeof(char));
-		if (customers[index].city == NULL) {
-			printf("\n"); // add the error message
-			return 0;
-		}
-		strcpy(customers[index].city, city);
-		if (customers[index].livingAdress != NULL) {
-			free(customers[index].livingAdress);
-		}
-		printf("Adress:\n");
-		gets(Adress);
-		customers[index].livingAdress = (char *)malloc((strlen(Adress) + 1) * sizeof(char));
-		if (customers[index].livingAdress == NULL) {
-			printf("\n"); // add the error message
-			return 0;
-		}
-		strcpy(customers[index].livingAdress, Adress);
-	}
-	else if (update_filde == 3) {
-		// update_filde = 3, user update the paymentDetails
-		if (customers[index].paymentDetails != NULL) {
-			free(customers[index].paymentDetails);
-		}
-		printf("payment Details:\n");
-		gets(paymentDetails);
-		customers[index].paymentDetails = (char *)malloc((strlen(paymentDetails) + 1) * sizeof(char));
-		if (customers[index].paymentDetails == NULL) {
-			printf("\n"); // add the error message
-			return 0;
-		}
-		strcpy(customers[index].paymentDetails, paymentDetails);
-	}
-	else if (update_filde == 4) {
-		//update_filde = 4, user update the phone Number
-		printf("Phone number:\n");
-		scanf("%ld", &customers[index].phoneNumber);
-	}
-	else if (update_filde == 5) {
-		//update_filde = 5, user update the client status
-		if (customers[index].Status != NULL) {
-			free(customers[index].Status);
-		}
-		gets(status);
-		customers[index].Status = (char *)malloc((strlen(status) + 1) * sizeof(char));
-		if (customers[index].Status == NULL) {
-			printf("\n"); // add the error message
-			return 0;
-		}
-		strcpy(customers[index].Status, status);
-		customers[index].start.day = aTm->tm_mday;
-		customers[index].start.month = aTm->tm_mon + 1;
-		customers[index].start.year = aTm->tm_year + 1900;
-	}
+	Write_to_Client_Data();
 	reset();
 }
 
@@ -806,7 +826,7 @@ void file_insert_client() {
 		num_field = 0;
 		for (index = 0; information[index] != '\0'; ++index) {
 			i = 0;
-			while (information[index] != ',' && i < 35 && information[index] != '\n') {
+			while (information[index] != ',' && i < 35 && information[index] != '\n' && !feof(client)) {
 				field[i] = information[index];
 				++index;
 				++i;
@@ -899,6 +919,23 @@ void file_insert_client() {
 		++number_client;
 	}
 	Close_client_Data(client);
+}
+
+void Write_to_Client_Data() {
+	int i;
+	FILE *fp = fopen("data_base_client.csv", "w");
+	if (fp == NULL) {
+		red();
+		printf("\nFailed to open this File!\n\n");
+		return fp;
+	}
+	for (i = 0; i < number_client; ++i) {
+		fprintf(fp, "%s,%s,%ld,%s,%s,%s,%ld,%s,%s,%s,%d,%d,%d\n",
+			customers[i].firstName, customers[i].lastName, customers[i].phoneNumber, customers[i].emailAdress,
+			customers[i].city, customers[i].livingAdress, customers[i].deal_id, customers[i].dealStatus, customers[i].paymentDetails,
+			customers[i].Status, customers[i].start.day, customers[i].start.month, customers[i].start.year);
+	}
+	Close_client_Data(fp);
 }
 
 void Search_existing_customer() {
