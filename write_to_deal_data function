@@ -1,0 +1,14 @@
+void Write_to_deal_data() {
+	int i;
+	FILE *fp = fopen("deal_table.csv", "w");
+	if (fp == NULL) {
+		red();
+		printf("\nFailed to open this File!\n\n");
+		return fp;
+	}
+	for (i = 0; i < number_deal; ++i) {
+		fprintf(fp,"%ld,%d,%s,%s,%d,%s,%s\n",deal[i].deal_number,deal[i].number_of_products,deal[i].type_of_products,
+			deal[i].type_of_deal,deal[i].total_price,deal[i].status,deal[i].type_of_payment);
+	}
+	Close_client_Data(fp);
+}
