@@ -83,7 +83,7 @@ struct client {
 	struct date start;
 };
 struct oppurtunity {
-	char *title;
+	unsigned long int client_id;
 	float worth;
 	char *status;
 	float confidence;
@@ -307,12 +307,7 @@ void file_insert_oppurtunity() {
 			}
 			field[i] = '\0';
 			if (num_field == 0) {
-				opp[number_oppurtunity].title = (char*)malloc((strlen(field) + 1) * sizeof(char));
-				if (opp[number_oppurtunity].title == NULL) {
-					printf("\n"); // add the error message
-					return 0;
-				}
-				strcpy(opp[number_oppurtunity].title, field);
+				opp[number_oppurtunity].client_id = from_char_to_long(field);
 			}
 			else if (num_field == 1) {
 				opp[number_oppurtunity].worth = strtof(field, NULL);
@@ -438,11 +433,13 @@ void file_insert_client() {
 			else if (num_field == 8) {
 				customers[number_client].deal_id = (long int *)malloc(customers[number_client].number_of_deal * sizeof(long int));
 				num_deal = 0;
-				for (k = 0; field[k] != "\0"; ++k) {
+				for (k = 0; field[k] != '\0'; ++k) {
 					f = 0;
 					while (field[k] != ':')
 					{
 						temp[f] = field[k];
+						k++;
+						f++;
 					}
 					customers[number_client].deal_id[num_deal] = from_char_to_long(temp);
 					++num_deal;
@@ -579,7 +576,7 @@ void file_insert_deal() {
 }
 
 void Write_to_Client_Data() {
-	int i;
+	int i,j;
 	FILE *fp = fopen("data_base_client.csv", "w");
 	if (fp == NULL) {
 		red();
@@ -587,9 +584,13 @@ void Write_to_Client_Data() {
 		return fp;
 	}
 	for (i = 0; i < number_client; ++i) {
-		fprintf(fp, "%s,%s,%ld,%s,%s,%s,%ld,%s,%s,%s,%d,%d,%d\n",
+		fprintf(fp, "%s,%s,%ld,%s,%s,%s,%d",
 			customers[i].firstName, customers[i].lastName, customers[i].phoneNumber, customers[i].emailAdress,
-			customers[i].city, customers[i].livingAdress, customers[i].deal_id, customers[i].dealStatus, customers[i].paymentDetails,
+			customers[i].city, customers[i].livingAdress, customers[i].number_of_deal);
+		for (j = 0; j < customers[i].number_of_deal; ++j) {
+			fprintf(fp, "%ld:", customers[i].deal_id[j]);
+		}
+		fprintf(fp, "%ld,%s,%s,%s,%d,%d,%d\n", customers[i].deal_id, customers[i].dealStatus, customers[i].paymentDetails,
 			customers[i].Status, customers[i].start.day, customers[i].start.month, customers[i].start.year);
 	}
 	Close_client_Data(fp);
@@ -1523,8 +1524,7 @@ void add_oppurtunity(long int deal_index, long int customer_index) {
 	time_t t = time(NULL);
 	struct tm* aTm = localtime(&t);
 	opp = (struct oppurtunity *)realloc(opp, (number_oppurtunity + 1) * sizeof(struct oppurtunity));
-	opp[number_oppurtunity].title = (char *)malloc((strlen(customers[customer_index].firstName) + 1) * sizeof(char));
-	strcpy(opp[number_oppurtunity].title, customers[customer_index].firstName);
+	opp[number_oppurtunity].client_id = customers[customer_index].id;
 	opp[number_oppurtunity].worth = deal[deal_index].total_price;
 	opp[number_oppurtunity].status = (char *)malloc((strlen(deal[deal_index].status) + 1) * sizeof(char));
 	strcpy(opp[number_oppurtunity].status, deal[deal_index].status);
@@ -1694,8 +1694,7 @@ void Uptade_deal(long int deal_id, long int customer_index) {
 				}
 				for (i = 0; i < number_oppurtunity; ++i) {
 					if (opp[i].deal_number == deal[index].deal_number) {
-						free(opp[i].title);
-						opp[i].title = NULL;
+						opp[i].client_id = 0;
 						opp[i].worth = 0;
 						free(opp[i].status);
 						opp[i].status = NULL;
@@ -1796,7 +1795,7 @@ void write_oppurtunity_data() {
 		return fp;
 	}
 	for (i = 0; i < number_oppurtunity; ++i) {
-		fprintf(fp, "%s,%f,%s,%f,%s,%d,%d,%d,%s,%d,%ld\n", opp[i].title, opp[i].worth, opp[i].status, opp[i].confidence, opp[i].seler_name,
+		fprintf(fp, "%ld,%f,%s,%f,%s,%d,%d,%d,%s,%d,%ld\n", opp[i].client_id, opp[i].worth, opp[i].status, opp[i].confidence, opp[i].seler_name,
 			opp[i].last_communication.day, opp[i].last_communication.month,
 			opp[i].last_communication.year, opp[i].product, opp[i].number_of_products, opp[i].deal_number);
 	}
